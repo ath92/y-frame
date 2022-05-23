@@ -1,38 +1,55 @@
-.App {
-  text-align: center;
+.y-frame {
+  position: absolute;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.y-frame:hover{
+  z-index: 2;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.y-frame iframe {
+  transform-origin: top left;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.handle {
+  cursor: move;
+  display: none;
+  position: absolute;
 }
 
-.App-link {
-  color: #61dafb;
+.y-frame:hover .handle {
+  display: block;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.handle.handling::after {
+  display: block;
+  content: "";
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  left: -50vw;
+  top: -50vh;
+}
+
+.y-frame:hover .drag.handle {
+  width: 60px;
+  height: 20px;
+  background: red;
+  left: 0;
+  bottom: 0;
+}
+
+.y-frame:hover .resize.handle {
+  height: 40px;
+  width: 40px;
+  background: blue;
+  right: 0;
+  bottom: 0;
+}
+
+.y-frame:hover .zoom.handle {
+  width: 20px;
+  height: 60px;
+  background: green;
+  right: 0;
+  bottom: 40px;
 }
