@@ -8,6 +8,9 @@ type Props = {
   onClose: () => void
 }
 
+const topBarHeight = 30
+const borderWidth = 2
+
 function YFrame({
   frame: yframe,
   onClose,
@@ -53,8 +56,8 @@ function YFrame({
     const iframe = wrapper.querySelector("iframe")!
     const scale = iframe.getBoundingClientRect().width / iframe.offsetWidth
 
-    const currentWidth = wrapper.offsetWidth / scale
-    const currentHeight = wrapper.offsetHeight / scale
+    const currentWidth = (wrapper.offsetWidth - borderWidth) / scale
+    const currentHeight = (wrapper.offsetHeight - borderWidth - topBarHeight) / scale
 
     const onMouseMove = (e: MouseEvent) => {
       e.preventDefault()
@@ -108,18 +111,31 @@ function YFrame({
     <div className="y-frame" style={{
       top: frame.y,
       left: frame.x,
-      width: frame.width * frame.scale,
-      height: frame.height * frame.scale,
+      width: frame.width * frame.scale + borderWidth,
+      height: frame.height * frame.scale + topBarHeight + borderWidth,
     }}>
+      <div className="top-bar">
+        <div className="title" onMouseDown={onDrag}>
+          {frame.url}
+        </div>
+        <div className="close" onClick={onClose}>
+          ˟
+        </div>
+      </div>
+
       <iframe src={frame.url} title={frame.url} style={{
         transform: `scale(${frame.scale})`,
         width: frame.width,
         height: frame.height,
       }} />
-      <div className="resize handle" onMouseDown={onResize} />
-      <div className="zoom handle" onMouseDown={onZoom} />
-      <div className="drag handle" onMouseDown={onDrag}></div>
-      <div className="close" onClick={onClose}></div>
+      
+      <div className="zoom handle left" onMouseDown={onZoom} />
+      <div className="zoom handle right" onMouseDown={onZoom} />
+      <div className="zoom handle bottom" onMouseDown={onZoom} />
+
+      <div className="resize handle top left" onMouseDown={onResize} />
+      <div className="resize handle bottom left" onMouseDown={onResize} />
+      <div className="resize handle bottom right" onMouseDown={onResize} />
     </div>
   )
 }

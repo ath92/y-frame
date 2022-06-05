@@ -1,5 +1,14 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --top-bar-height: 30px;
+}
+
 .y-frame {
   position: absolute;
+  border: 1px solid black;
 }
 
 .y-frame:hover{
@@ -8,10 +17,39 @@
 
 .y-frame iframe {
   transform-origin: top left;
+  border: none;
+}
+
+.y-frame .top-bar {
+  display: flex;
+  align-items: center;
+  height: var(--top-bar-height);
+  background: white;
+  width: 100%;
+  border-bottom: 1px solid black;
+}
+
+.y-frame .top-bar .title {
+  flex: 1;
+  justify-content: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 10px;
+  cursor: move;
+}
+
+.y-frame .top-bar .close {
+  width: var(--top-bar-height);
+  height: var(--top-bar-height);
+  flex: 0 0 auto;
+  cursor: pointer;
+  justify-content: center;
+  text-align: center;
+  font-size: var(--top-bar-height);
+  border-left: 1px solid black; 
 }
 
 .handle {
-  cursor: move;
   display: none;
   position: absolute;
 }
@@ -30,36 +68,49 @@
   top: -50vh;
 }
 
-.y-frame:hover .drag.handle {
-  width: 60px;
-  height: 20px;
-  background: red;
-  left: 0;
-  bottom: 0;
-}
-
 .y-frame:hover .resize.handle {
-  height: 40px;
-  width: 40px;
-  background: blue;
-  right: 0;
+  height: 10px;
+  width: 10px;
+}
+
+.resize.handle.bottom.right {
+  right: -5px;
+  bottom: -5px;
+  cursor: nwse-resize;
+}
+
+.resize.handle.bottom.left {
+  left: -5px;
+  bottom: -5px;
+  cursor: nesw-resize;
+}
+
+.resize.handle.top.left {
+  left: -5px;
+  top: -5px;
+  cursor: nwse-resize;
+}
+
+.zoom.handle.right {
+  width: 10px;
+  right: -5px;
   bottom: 0;
+  top: var(--top-bar-height);
+  cursor: ew-resize;
 }
 
-.y-frame:hover .zoom.handle {
-  width: 20px;
-  height: 60px;
-  background: green;
-  right: 0;
-  bottom: 40px;
-}
-
-.close {
-  position: absolute;
-  width: 20px;
-  height: 20px;
+.zoom.handle.left {
+  width: 10px;
+  left: -5px;
+  bottom: 0;
   top: 0;
+  cursor: ew-resize;
+}
+
+.zoom.handle.bottom {
+  height: 10px;
+  bottom: -5px;
+  left: 0;
   right: 0;
-  background: black;
-  cursor: pointer;
+  cursor: ns-resize;
 }
