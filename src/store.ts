@@ -8,6 +8,7 @@ export type Frame = {
     x: number, y: number
     width: number, height: number
     scale: number
+    state?: Y.Doc
 }
 
 export type FrameMapType = Frame[keyof Frame]
@@ -29,10 +30,20 @@ const firstFrame = new Y.Map<FrameMapType>(Object.entries(firstFrameContent))
 
 frames.set(firstFrameContent.id, firstFrame)
 
-export const webrtcProvider = new WebrtcProvider("y-frame", doc as any, 
-// @ts-ignore
-{ signaling: ['ws://localhost:4444'] }
-);
+function connectToWebRTC (doc: Y.Doc, room?: string) {
+    new WebrtcProvider(room || doc.guid, doc as any, 
+        // @ts-ignore
+        { signaling: ['ws://localhost:4444'] }
+    );
+}
 
-export const disconnect = () => webrtcProvider.disconnect();
-export const connect = () => webrtcProvider.connect();
+doc.on('subdocs', ({ loaded }) => {
+    loaded.forEach((subdoc: Y.Doc) => {
+        connectToWebRTC(subdoc)
+    })
+}) // Get the Set<Y.Doc> of all subdocuments
+for(let subdoc of doc.getSubdocs()){
+    connectToWebRTC(subdoc)
+}
+
+connectToWebRTC(doc, "y-frame")

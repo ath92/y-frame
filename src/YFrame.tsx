@@ -28,8 +28,9 @@ function YFrame({
     const { clientX: startX, clientY: startY } = e;
     const handle = e.currentTarget
     const wrapper = handle.closest(".y-frame")! as HTMLDivElement
-    const offsetX = startX - wrapper.offsetLeft
-    const offsetY = startY - wrapper.offsetTop
+    const rect = wrapper.querySelector(".top-bar")!.getBoundingClientRect()
+    const offsetX = startX - rect.left
+    const offsetY = startY - rect.top
 
     const onMouseMove = (e: MouseEvent) => {
       e.preventDefault()
@@ -109,10 +110,9 @@ function YFrame({
 
   return (
     <div className="y-frame" style={{
-      top: frame.y,
-      left: frame.x,
       width: frame.width * frame.scale + borderWidth,
       height: frame.height * frame.scale + topBarHeight + borderWidth,
+      transform: `translate3D(${frame.x}px, ${frame.y}px, 0)`,
     }}>
       <div className="top-bar">
         <div className="title" onMouseDown={onDrag}>

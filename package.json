@@ -23,7 +23,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "signaling-server": "PORT=4444 node ./node_modules/y-webrtc/bin/server.js"
   },
   "eslintConfig": {
     "extends": [
