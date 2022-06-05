@@ -23,7 +23,10 @@ const generateFrame: () => Frame = () => {
   }
 }
 
-const handleClick = () => frames.push([new Y.Map<FrameMapType>(Object.entries(generateFrame()))])
+const handleClick = () => {
+  const newFrame = generateFrame()
+  frames.set(newFrame.id, new Y.Map<FrameMapType>(Object.entries(newFrame)))
+}
 
 function App() {
   useRenderOnChange(frames)
@@ -31,8 +34,11 @@ function App() {
   return (
     <div className="App">
       <button onClick={handleClick}>Add frame</button>
-      {frames.map((f, i) => (
-        <YFrame frame={f} key={f.get("id")} />
+      {[...frames].map(([, frame], i) => (
+        <YFrame frame={frame} key={frame.get("id")} onClose={() => {
+          frames.delete(frame.get("id"))
+          console.log("deleting", frame.get("id"))
+        }} />
       ))}
     </div>
   );

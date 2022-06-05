@@ -5,10 +5,12 @@ import useRenderOnChange from "./useRenderOnChange"
 
 type Props = {
   frame: Y.Map<FrameMapType>
+  onClose: () => void
 }
 
 function YFrame({
-  frame: yframe
+  frame: yframe,
+  onClose,
 }: Props) {
   const counter = useRenderOnChange(yframe)
 
@@ -117,6 +119,7 @@ function YFrame({
       <div className="resize handle" onMouseDown={onResize} />
       <div className="zoom handle" onMouseDown={onZoom} />
       <div className="drag handle" onMouseDown={onDrag}></div>
+      <div className="close" onClick={onClose}></div>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import * as Y from "yjs";
 import { WebrtcProvider } from "y-webrtc";
+import { v4 as uuid } from "uuid"
 
 export type Frame = {
     id: string,
@@ -14,18 +15,19 @@ export type FrameMapType = Frame[keyof Frame]
 // Create your SyncedStore store
 export const doc = new Y.Doc()
 
-export const frames = doc.getArray<Y.Map<FrameMapType>>()
+export const frames = doc.getMap<Y.Map<FrameMapType>>()
 
 const firstFrameContent = {
     url: "https://www.tomhutman.nl",
     x: 0, y: 0,
     width: 300, height: 200,
     scale: 1,
+    id: uuid(),
 }
 
 const firstFrame = new Y.Map<FrameMapType>(Object.entries(firstFrameContent))
 
-frames.insert(0, [firstFrame])
+frames.set(firstFrameContent.id, firstFrame)
 
 export const webrtcProvider = new WebrtcProvider("y-frame", doc as any, 
 // @ts-ignore
