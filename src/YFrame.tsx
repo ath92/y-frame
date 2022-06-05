@@ -1,15 +1,23 @@
-import React, { useCallback, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
+import * as Y from "yjs"
+import { FrameMapType, Frame } from "./store"
+import useRenderOnChange from "./useRenderOnChange"
 
 type Props = {
-  src: string
+  frame: Y.Map<FrameMapType>
 }
 
 function YFrame({
-  src
+  frame: yframe
 }: Props) {
-  const [[x, y], setPosition] = useState<[number, number]>([0, 0])
-  const [[width, height], setSize] = useState<[number, number]>([300, 200])
-  const [scale, setScale] = useState(1)
+  const counter = useRenderOnChange(yframe)
+
+  const frame = useMemo(() => {
+    const asObject = Object.fromEntries(yframe.entries()) as Frame
+    // console.log(asObject)
+    return asObject
+  }, [counter, yframe])
+
 
   const onDrag = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const { clientX: startX, clientY: startY } = e;
@@ -22,7 +30,8 @@ function YFrame({
       e.preventDefault()
       const { clientX: currentX, clientY: currentY } = e
 
-      setPosition([currentX - offsetX, currentY - offsetY])
+      yframe.set("x", currentX - offsetX)
+      yframe.set("y", currentY - offsetY)
     }
 
     handle.classList.toggle("handling", true)
@@ -49,11 +58,11 @@ function YFrame({
       e.preventDefault()
       const { clientX: newX, clientY: newY } = e
 
-      setSize(() => {
-        const diffX = newX - startX
-        const diffY = newY - startY
-        return [currentWidth + diffX / scale, currentHeight + diffY / scale]
-      })
+      const diffX = newX - startX
+      const diffY = newY - startY
+
+      yframe.set("width", currentWidth + diffX / scale)
+      yframe.set("height", currentHeight + diffY / scale)
     }
 
     handle.classList.toggle("handling", true)
@@ -80,7 +89,7 @@ function YFrame({
 
       const newWidth = currentX - wrapper.offsetLeft
 
-      setScale(newWidth / startWidth * startScale)
+      yframe.set("scale", newWidth / startWidth * startScale)
     }
 
     handle.classList.toggle("handling", true)
@@ -95,15 +104,15 @@ function YFrame({
 
   return (
     <div className="y-frame" style={{
-      top: y,
-      left: x,
-      width: width * scale,
-      height: height * scale,
+      top: frame.y,
+      left: frame.x,
+      width: frame.width * frame.scale,
+      height: frame.height * frame.scale,
     }}>
-      <iframe src={src} title={src} style={{
-        transform: `scale(${scale})`,
-        width: width,
-        height: height,
+      <iframe src={frame.url} title={frame.url} style={{
+        transform: `scale(${frame.scale})`,
+        width: frame.width,
+        height: frame.height,
       }} />
       <div className="resize handle" onMouseDown={onResize} />
       <div className="zoom handle" onMouseDown={onZoom} />
