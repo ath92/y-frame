@@ -11,6 +11,9 @@ type Props = {
 const topBarHeight = 30
 const borderWidth = 2
 
+const MIN_WIDTH = 300
+const MIN_HEIGHT = 300
+
 function YFrame({
   frame: yframe,
   onClose,
@@ -23,42 +26,59 @@ function YFrame({
     return asObject
   }, [counter, yframe])
 
-
-  const onDrag = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const { clientX: startX, clientY: startY } = e;
+  const onDrag = useCallback((e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    const startX = "clientX" in e ? e.clientX : e.touches[0].pageX
+    const startY = "clientY" in e ? e.clientY : e.touches[0].pageY
+    if ((e.target as HTMLElement).tagName === "BUTTON") {
+      return;
+    }
     const handle = e.currentTarget
     const wrapper = handle.closest(".y-frame")! as HTMLDivElement
-    const rect = wrapper.querySelector(".top-bar")!.getBoundingClientRect()
-    const offsetX = startX - rect.left
+    const rect = wrapper.getBoundingClientRect()
     const offsetY = startY - rect.top
 
-    const onMouseMove = (e: MouseEvent) => {
+    const onMouseMove = (e: MouseEvent | TouchEvent) => {
       e.preventDefault()
-      const { clientX: currentX, clientY: currentY } = e
+      const currentX = "clientX" in e ? e.clientX : e.touches[0].pageX
+      const currentY = "clientX" in e ? e.clientY : e.touches[0].pageY
 
-      yframe.set("x", currentX - offsetX)
-      yframe.set("y", currentY - offsetY)
+      yframe.set("x", rect.left + (currentX - startX))
+      yframe.set("y", rect.top + (currentY - startY))
     }
 
     handle.classList.toggle("handling", true)
     window.addEventListener("mousemove", onMouseMove)
+    window.addEventListener("touchmove", onMouseMove)
     const cleanup = () => {
       handle.classList.toggle("handling", false)
       window.removeEventListener("mousemove", onMouseMove)
+      window.removeEventListener("touchmove", onMouseMove)
       window.removeEventListener("mouseup", cleanup)
+      window.removeEventListener("touchend", cleanup)
     }
     window.addEventListener("mouseup", cleanup)
+    window.addEventListener("touchend", cleanup)
   }, [])
+
+  const scale = frame.scale
 
   const onResize = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const { clientX: startX, clientY: startY } = e;
     const handle = e.currentTarget
-    const wrapper = handle.closest(".y-frame")! as HTMLDivElement
-    const iframe = wrapper.querySelector("iframe")!
-    const scale = iframe.getBoundingClientRect().width / iframe.offsetWidth
+    const vertical = handle.classList.contains("top") ? "top"
+      : handle.classList.contains("bottom") ? "bottom"
+      : "none" 
+    const horizontal = handle.classList.contains("left") ? "left"
+      : handle.classList.contains("right") ? "right"
+      : "none" 
 
-    const currentWidth = (wrapper.offsetWidth - borderWidth) / scale
-    const currentHeight = (wrapper.offsetHeight - borderWidth - topBarHeight) / scale
+    const wrapper = handle.closest(".y-frame")! as HTMLDivElement
+    const rect = wrapper.getBoundingClientRect()
+
+    const currentWidth = (rect.width - borderWidth) / scale
+    const currentHeight = (rect.height- borderWidth)  / scale - topBarHeight
+    const currentX = rect.left
+    const currentY = rect.top
 
     const onMouseMove = (e: MouseEvent) => {
       e.preventDefault()
@@ -67,8 +87,29 @@ function YFrame({
       const diffX = newX - startX
       const diffY = newY - startY
 
-      yframe.set("width", currentWidth + diffX / scale)
-      yframe.set("height", currentHeight + diffY / scale)
+      const newWidth = Math.max(
+        horizontal === "right" ?
+        currentWidth + diffX / scale:
+        horizontal === "left" ?
+        currentWidth - diffX / scale:
+        currentWidth,
+        MIN_WIDTH);
+
+      yframe.set("width", newWidth)
+        
+      if (horizontal === "left") yframe.set("x", currentX + diffX)
+        
+      const newHeight = Math.max(
+        vertical === "bottom" ?
+        currentHeight + diffY / scale:
+        vertical === "top" ?
+        currentHeight - diffY / scale:
+        currentHeight,
+        MIN_HEIGHT);
+
+      
+      yframe.set("height", newHeight)
+      if (vertical === "top") yframe.set("y", currentY + diffY)
     }
 
     handle.classList.toggle("handling", true)
@@ -79,23 +120,42 @@ function YFrame({
       window.removeEventListener("mouseup", cleanup)
     }
     window.addEventListener("mouseup", cleanup)
-  }, [])
+  }, [scale])
 
   const onZoom = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const { clientX: startX } = e;
+    const { clientX: startMouseX, clientY: startMouseY } = e;
     const handle = e.currentTarget
     const wrapper = handle.closest(".y-frame")! as HTMLDivElement
+    const rect = wrapper.getBoundingClientRect()
+    const startWidth = rect.width
+    const startHeight = rect.height
+    const startY = rect.top
+    const startX = rect.left
     const iframe = wrapper.querySelector("iframe")!
-    const startWidth = startX - wrapper.offsetLeft
     const startScale = iframe.getBoundingClientRect().width / iframe.offsetWidth
+    const horizontal = handle.classList.contains("left") ? "left"
+      : handle.classList.contains("right") ? "right"
+      : "none" 
+    const vertical = handle.classList.contains("top") ? "top"
+      : handle.classList.contains("bottom") ? "bottom"
+      : "none" 
 
     const onMouseMove = (e: MouseEvent) => {
       e.preventDefault()
-      const { clientX: currentX } = e
+      const { clientX: currentMouseX, clientY: currentMouseY } = e
 
-      const newWidth = currentX - wrapper.offsetLeft
-
-      yframe.set("scale", newWidth / startWidth * startScale)
+      if (horizontal !== "none") {
+        const isLeft = horizontal === "left"
+        const sign = isLeft ? -1 : 1;
+        const newWidth = startWidth + (currentMouseX - startMouseX) * sign
+        yframe.set("scale", newWidth / startWidth * startScale)
+        if (isLeft) yframe.set("x", startX + (currentMouseX - startMouseX))
+      } else {
+        const isTop = vertical === "top"
+        const newHeight = startHeight + (currentMouseY - startMouseY)
+        yframe.set("scale", newHeight / startHeight * startScale)
+        if (isTop) yframe.set("y", startY + (currentMouseY - startMouseY))
+      }
     }
 
     handle.classList.toggle("handling", true)

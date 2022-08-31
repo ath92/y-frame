@@ -19,9 +19,9 @@ export const doc = new Y.Doc()
 export const frames = doc.getMap<Y.Map<FrameMapType>>()
 
 const firstFrameContent = {
-    url: "https://www.tomhutman.nl",
+    url: "https://www.maanraket.nl/experiments/virtual-doom/",
     x: 0, y: 0,
-    width: 300, height: 200,
+    width: 600, height: 400,
     scale: 1,
     id: uuid(),
 }

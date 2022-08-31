@@ -8,9 +8,14 @@ import { WebrtcProvider } from "y-webrtc";
 import { Fragment } from "react";
 
 const frameUrls = [
-  "https://www.tomhutman.nl",
+  "https://fractal-garden.netlify.app/viewer.html?fractal=klein",
+  "https://fractal-garden.netlify.app/viewer.html?fractal=mandelbulb",
+  "https://smooth-life.netlify.app/",
   "https://www.maanraket.nl/experiments/chesspath",
-  "https://www.legowelt.org",
+  "https://condescending-jepsen-5f5132.netlify.app/",
+  "https://www.maanraket.nl/experiments/flock/",
+  "https://www.maanraket.nl/experiments/tunnel/",
+  "https://www.maanraket.nl/experiments/fractals/",
 ]
 
 let i = 0;
@@ -20,7 +25,7 @@ const generateFrame: () => Frame = () => {
     id: uuid(),
     url: frameUrls[i % frameUrls.length],
     x: 0, y: 0,
-    width: 300, height: 200,
+    width: 600, height: 400,
     scale: 1,
   }
 }
