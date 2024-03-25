@@ -1,11 +1,10 @@
 import YFrame from "./YFrame";
 import * as Y from "yjs";
-import { Frame, FrameMapType, frames } from "./store";
+import { Frame, FrameMapType, doc, frames } from "./store";
 import "./App.css";
-import useRenderOnChange from "./useRenderOnChange";
+import { useReRenderOnChange } from "./useRenderOnChange";
 import { v4 as uuid } from "uuid"
-import { WebrtcProvider } from "y-webrtc";
-import { Fragment } from "react";
+import { Fragment, useCallback } from "react";
 
 const frameUrls = [
   "https://fractal-garden.netlify.app/viewer.html?fractal=klein",
@@ -57,20 +56,30 @@ const handleClick = () => {
 }
 
 function App() {
-  useRenderOnChange(frames)
+  useReRenderOnChange(doc)
+
+  const updateFrame = useCallback((frameId: string, key: string, value: FrameMapType) => {
+    const frame = frames.get(frameId)
+    if (frame) {
+      frame.set(key, value)
+    }
+  }, [])
+
+  const onClose = useCallback((id: string) => {
+    frames.delete(id)
+  }, [])
 
   return (
     <div className="App">
       <button onClick={handleClick}>Add frame</button>
       <button onClick={handleNewCounter}>Add Counter</button>
       {[...frames].map(([, frame], i) => (
-        <Fragment key={frame.get("id")}>  
+        <Fragment key={frame.get("id") as string}>  
           <YFrame
-            frame={frame}
-            
-            onClose={() => {
-              frames.delete(frame.get("id"))
-            }} />
+            onClose={onClose}
+            updateFrame={updateFrame}
+            {...Object.fromEntries(frame.entries()) as Frame}
+          />
         </Fragment>
       ))}
       {undefined}

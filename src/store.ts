@@ -1,5 +1,5 @@
 import * as Y from "yjs";
-import { WebrtcProvider } from "y-webrtc";
+import { WebsocketProvider } from "y-websocket";
 import { v4 as uuid } from "uuid"
 
 export type Frame = {
@@ -30,20 +30,27 @@ const firstFrame = new Y.Map<FrameMapType>(Object.entries(firstFrameContent))
 
 frames.set(firstFrameContent.id, firstFrame)
 
-function connectToWebRTC (doc: Y.Doc, room?: string) {
-    new WebrtcProvider(room || doc.guid, doc as any, 
-        // @ts-ignore
-        { signaling: ['ws://localhost:4444'] }
-    );
+// function connectToWebRTC (doc: Y.Doc, room?: string) {
+//     new WebrtcProvider(room || doc.guid, doc as any, 
+//         // @ts-ignore
+//         { signaling: ['ws://localhost:4444'] }
+//     );
+// }
+
+function connectToWebsocket (doc: Y.Doc, room?: string) {
+   new WebsocketProvider(`${import.meta.env.VITE_WS_URL}`, room || doc.guid, doc as any)
 }
 
 doc.on('subdocs', ({ loaded }) => {
     loaded.forEach((subdoc: Y.Doc) => {
-        connectToWebRTC(subdoc)
+        connectToWebsocket(subdoc)
     })
 }) // Get the Set<Y.Doc> of all subdocuments
 for(let subdoc of doc.getSubdocs()){
-    connectToWebRTC(subdoc)
+    connectToWebsocket(subdoc)
 }
 
-connectToWebRTC(doc, "y-frame")
+//grab boardId from path param
+const boardId = window.location.pathname.split('/')[1]
+
+connectToWebsocket(doc, `y-frame-${boardId}`)

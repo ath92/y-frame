@@ -1,12 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
-import * as Y from "yjs"
+import React, { useCallback } from "react"
 import { FrameMapType, Frame } from "./store"
-import useRenderOnChange from "./useRenderOnChange"
 
 type Props = {
-  frame: Y.Map<FrameMapType>
-  onClose: () => void
-}
+  onClose: (id: string) => void
+  updateFrame: (frameId: string, key: string, value: FrameMapType) => void
+} & Frame
 
 const topBarHeight = 30
 const borderWidth = 2
@@ -15,16 +13,19 @@ const MIN_WIDTH = 300
 const MIN_HEIGHT = 300
 
 function YFrame({
-  frame: yframe,
   onClose,
+  updateFrame,
+  id,
+  url,
+  width,
+  height,
+  x,
+  y,
+  scale,
 }: Props) {
-  const counter = useRenderOnChange(yframe)
-
-  const frame = useMemo(() => {
-    const asObject = Object.fromEntries(yframe.entries()) as Frame
-    // console.log(asObject)
-    return asObject
-  }, [counter, yframe])
+  const updateCurrentFrame = useCallback((key: string, value: FrameMapType) => {
+    updateFrame(id, key, value)
+  }, [updateFrame, id])
 
   const onDrag = useCallback((e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     const startX = "clientX" in e ? e.clientX : e.touches[0].pageX
@@ -42,8 +43,8 @@ function YFrame({
       const currentX = "clientX" in e ? e.clientX : e.touches[0].pageX
       const currentY = "clientX" in e ? e.clientY : e.touches[0].pageY
 
-      yframe.set("x", rect.left + (currentX - startX))
-      yframe.set("y", rect.top + (currentY - startY))
+      updateCurrentFrame("x", rect.left + (currentX - startX))
+      updateCurrentFrame("y", rect.top + (currentY - startY))
     }
 
     handle.classList.toggle("handling", true)
@@ -59,8 +60,6 @@ function YFrame({
     window.addEventListener("mouseup", cleanup)
     window.addEventListener("touchend", cleanup)
   }, [])
-
-  const scale = frame.scale
 
   const onResize = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const { clientX: startX, clientY: startY } = e;
@@ -95,9 +94,9 @@ function YFrame({
         currentWidth,
         MIN_WIDTH);
 
-      yframe.set("width", newWidth)
+      updateCurrentFrame("width", newWidth)
         
-      if (horizontal === "left") yframe.set("x", currentX + diffX)
+      if (horizontal === "left") updateCurrentFrame("x", currentX + diffX)
         
       const newHeight = Math.max(
         vertical === "bottom" ?
@@ -108,8 +107,8 @@ function YFrame({
         MIN_HEIGHT);
 
       
-      yframe.set("height", newHeight)
-      if (vertical === "top") yframe.set("y", currentY + diffY)
+      updateCurrentFrame("height", newHeight)
+      if (vertical === "top") updateCurrentFrame("y", currentY + diffY)
     }
 
     handle.classList.toggle("handling", true)
@@ -148,13 +147,13 @@ function YFrame({
         const isLeft = horizontal === "left"
         const sign = isLeft ? -1 : 1;
         const newWidth = startWidth + (currentMouseX - startMouseX) * sign
-        yframe.set("scale", newWidth / startWidth * startScale)
-        if (isLeft) yframe.set("x", startX + (currentMouseX - startMouseX))
+        updateCurrentFrame("scale", newWidth / startWidth * startScale)
+        if (isLeft) updateCurrentFrame("x", startX + (currentMouseX - startMouseX))
       } else {
         const isTop = vertical === "top"
         const newHeight = startHeight + (currentMouseY - startMouseY)
-        yframe.set("scale", newHeight / startHeight * startScale)
-        if (isTop) yframe.set("y", startY + (currentMouseY - startMouseY))
+        updateCurrentFrame("scale", newHeight / startHeight * startScale)
+        if (isTop) updateCurrentFrame("y", startY + (currentMouseY - startMouseY))
       }
     }
 
@@ -170,23 +169,23 @@ function YFrame({
 
   return (
     <div className="y-frame" style={{
-      width: frame.width * frame.scale + borderWidth,
-      height: frame.height * frame.scale + topBarHeight + borderWidth,
-      transform: `translate3D(${frame.x}px, ${frame.y}px, 0)`,
+      width: width * scale + borderWidth,
+      height: height * scale + topBarHeight + borderWidth,
+      transform: `translate3D(${x}px, ${y}px, 0)`,
     }}>
       <div className="top-bar">
         <div className="title" onMouseDown={onDrag}>
-          {frame.url}
+          {url}
         </div>
-        <div className="close" onClick={onClose}>
+        <div className="close" onClick={() => onClose(id)}>
           ˟
         </div>
       </div>
 
-      <iframe src={frame.url} title={frame.url} style={{
-        transform: `scale(${frame.scale})`,
-        width: frame.width,
-        height: frame.height,
+      <iframe src={url} title={url} style={{
+        transform: `scale(${scale})`,
+        width: width,
+        height: height,
       }} />
       
       <div className="zoom handle left" onMouseDown={onZoom} />
@@ -200,4 +199,4 @@ function YFrame({
   )
 }
 
-export default YFrame;
+export default React.memo(YFrame);
